@@ -1,3 +1,3 @@
-# Název projektu
+3Game Launcher
 
 Popis projektu, návod k instalaci apod.
