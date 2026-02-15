@@ -1,4 +1,4 @@
 # Mini3 Launcher
 
-Popis projektu, návod k instalaci apod.
+Launcher hada, dropperu a hledání min
 
