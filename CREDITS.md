@@ -1,5 +1,5 @@
 # Použitá díla třetích stran
-chatgpt 
+chatgpt, copilot, claude sonet 4.5 agent 
 *Všechna zde neuvedená díla prohlašují autoři za vlastní tvorbu.*
 
 - **Autor díla**; *Název díla*; <https://odkaz.na/konkretni/stranku>
