@@ -1,6 +1,6 @@
-Ondra
+zub-ondra
 
-tadek
+tadek-tadeáš
 
-miskos
+miskos-míša
 
