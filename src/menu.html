@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu – Arcade Zone</title>
+<link rel="stylesheet" href="/css/style.css">
+<script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=OI8AqEjKhAC-Qx0jU0CXUaInJMSg5qHcF4XcleH1PnuRppWIBAfNjNaHjTi2yWVNWvc9WXf7iAIoz_YyPK3FsEk6Y7K2UQPjtdYZQrv3ANw5c2blDjekvcZ56MrbZCIGoE9riMbFfCBn_Ay_SX8KU39w6YejckXogkNpZbz4yyHkeCdJqmi5U9aXRJwUFQ2-tFvD3t_QP_NreBfykUaSOKM-0dhGOLaWpj4W4EaU9Ls05QHH06GbjxilC40ppiEQINVmpAAGUzRp49qzjq9Yig" charset="UTF-8"></script></head>
+<body style="display:flex;flex-direction:column;min-height:100vh">
+
+<nav>
+  <a class="nav-brand" href="/menu">ARCADE<span>ZONE</span></a>
+  <div class="nav-links">
+    <a href="/menu">Menu</a>
+    <a href="/profil">Profil</a>
+    <a href="/nastaveni">Nastavení</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button type="submit" class="btn secondary" style="width:auto;padding:6px 14px;font-size:10px;margin:0">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">▤ HERNÍ CENTRUM</div>
+
+  <div class="menu-grid">
+    <a href="/profil" class="menu-item">
+      <span class="icon">👤</span>
+      <h3>PROFIL</h3>
+      <p>Tvůj účet a statistiky</p>
+    </a>
+    <a href="/nastaveni" class="menu-item">
+      <span class="icon">⚙️</span>
+      <h3>NASTAVENÍ</h3>
+      <p>Přizpůsob si aplikaci</p>
+    </a>
+    <a href="#" class="menu-item">
+      <span class="icon">🏆</span>
+      <h3>ŽEBŘÍČEK</h3>
+      <p>Nejlepší hráči</p>
+    </a>
+    <a href="#" class="menu-item">
+      <span class="icon">📖</span>
+      <h3>NÁPOVĚDA</h3>
+      <p>Jak používat aplikaci</p>
+    </a>
+  </div>
+</main>
+
+<script src="/js/main.js"></script>
+</body>
+</html>
