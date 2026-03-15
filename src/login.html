@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Přihlášení – Arcade Zone</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="page">
+  <div class="logo">ARCADE<span>ZONE</span></div>
+  <div class="tagline">[ INSERT COIN TO PLAY ]</div>
+
+  <div class="card">
+    <h2>PŘIHLÁSIT SE</h2>
+
+    <div class="error">{{error}}</div>
+    <div class="error" id="clientError"></div>
+
+    <form id="loginForm" method="POST" action="/login">
+      <div class="field">
+        <label for="username">JMÉNO</label>
+        <input type="text" id="username" name="username" placeholder="hráč..." autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">HESLO</label>
+        <input type="password" id="password" name="password" placeholder="••••••" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn">▶ VSTOUPIT</button>
+    </form>
+
+    <div class="link">Nemáš účet? <a href="/register">Registruj se</a></div>
+    <div class="hint">Demo: admin / 1234</div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>
