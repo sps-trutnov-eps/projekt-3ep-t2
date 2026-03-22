@@ -2,9 +2,9 @@ Mini launcher
 
 
 
-tadek-velitel
+tadek-velitel-Tadeáš Zeman
 
-miskos-otrok
+miskos-otrok-Michal Uher
 
-zub-otrok
+zub-otrok-Ondřej Zbitek
 
