@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiky – Arcade Zone</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/extras.css">
+<script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=eWm-TXkmc_rTgru0zkOFJIL7Y2-zpRBFcDd-VyvyET0BrT2jLYOZvSbCdDk063TRcIFRIZnLw7g1AjoVE3CSq8p1B-Ilq-ZbhYqwhObYRLM1sjT-uVIqpyPd6vqmiSUGSmYjRsFKJPhNHunmq66kXN6-6SzlgkLcI_ADUSMFkOC0UctJPZ15fBs3pdj92M_6tRE7vl58TOGmlJMpOUGxVH_TeseqNWxnUihFsDlQqMEHPtxO2OUo430sse6XC2pRnDnukBdlUxuar6W2bLkuBg" charset="UTF-8"></script></head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">ARCADE<span>ZONE</span></a>
+  <div class="nav-links">
+    <a href="/menu">Menu</a>
+    <a href="/statistiky" class="active">Statistiky</a>
+    <a href="/leaderboard">Žebříček</a>
+    <a href="/skiny">Skiny</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary" style="width:auto;padding:6px 14px;font-size:10px;margin:0">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+<main>
+  <div class="page-title">📊 OSOBNÍ STATISTIKY</div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-icon">🐍</span>
+      <div class="stat-label">Snake – nejlepší skóre</div>
+      <div class="stat-value">{{snake}}<span class="stat-unit">bodů</span></div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🃏</span>
+      <div class="stat-label">Memory – nejméně tahů</div>
+      <div class="stat-value">{{memory}}<span class="stat-unit">tahů</span></div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">⚡</span>
+      <div class="stat-label">Reakční čas – nejlepší</div>
+      <div class="stat-value">{{reaction}}<span class="stat-unit">ms</span></div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🎮</span>
+      <div class="stat-label">Celkem odehráno</div>
+      <div class="stat-value">{{gamesPlayed}}<span class="stat-unit">her</span></div>
+    </div>
+  </div>
+
+  <div class="rank-box">
+    <div class="rank-icon">🏆</div>
+    <div>
+      <div class="rank-label">CELKOVÉ POŘADÍ</div>
+      <div class="rank-value">–</div>
+      <div style="color:var(--dim);font-size:17px;margin-top:4px">Zahraj hry a získej místo v žebříčku!</div>
+    </div>
+  </div>
+</main>
+<script src="/js/main.js"></script>
+</body>
+</html>
+
