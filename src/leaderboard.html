@@ -22,4 +22,59 @@
   </div>
 </nav>
 <main>
-
+  <div class="page-title">🏆 ŽEBŘÍČEK HRÁČŮ</div>
+ 
+  <div class="lb-tabs">
+    <button class="lb-tab active" onclick="showTab('snake', this)">🐍 Snake</button>
+    <button class="lb-tab" onclick="showTab('memory', this)">🃏 Memory</button>
+    <button class="lb-tab" onclick="showTab('reaction', this)">⚡ Reakční čas</button>
+  </div>
+ 
+  <div id="lbTable"></div>
+</main>
+ 
+<script src="/js/main.js"></script>
+<script>
+const data = {{dataJson}};
+const me = '{{username}}';
+const rankClass = ['gold','silver','bronze'];
+const rankEmoji = ['🥇','🥈','🥉'];
+ 
+const configs = {
+  snake:    { key: 'bySnake',    col: 'Skóre',       unit: 'bodů', higherBetter: true },
+  memory:   { key: 'byMemory',   col: 'Tahy',        unit: 'tahů', higherBetter: false },
+  reaction: { key: 'byReaction', col: 'Reakční čas', unit: 'ms',   higherBetter: false },
+};
+ 
+function showTab(game, btn) {
+  document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const cfg = configs[game];
+  const rows = data[cfg.key];
+  const table = document.getElementById('lbTable');
+  table.innerHTML = `
+    <table class="lb-table">
+      <thead><tr>
+        <th>#</th><th>HRÁČ</th><th>${cfg.col}</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map((r, i) => {
+          const score = game === 'snake' ? r.snake : game === 'memory' ? r.memory : r.reaction;
+          const isMe = r.username === me;
+          const rc = rankClass[i] || '';
+          const em = rankEmoji[i] || '';
+          return `<tr class="${isMe ? 'me' : ''}">
+            <td><span class="rank-num ${rc}">${em || (i+1)}</span></td>
+            <td>${isMe ? '▶ ' : ''}${r.username}${isMe ? ' (ty)' : ''}</td>
+            <td><span class="lb-score">${score}</span> <span style="color:var(--dim);font-size:16px">${cfg.unit}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+ 
+showTab('snake', document.querySelector('.lb-tab'));
+</script>
+</body>
+</html>
