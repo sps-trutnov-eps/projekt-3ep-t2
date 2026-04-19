@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrace – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-page">
+<div class="auth-wrap">
+  <div class="logo">MINI3<span>LAUNCHER</span></div>
+  <div class="tagline">[ NEW PLAYER ]</div>
+  <div class="card">
+    <h2>REGISTRACE</h2>
+    <div class="error-msg">{{error}}</div>
+    <form method="POST" action="/register">
+      <div class="field">
+        <label>JMÉNO</label>
+        <input type="text" name="username" placeholder="min. 2 znaky..." autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label>HESLO</label>
+        <input type="password" name="password" placeholder="min. 4 znaky..." autocomplete="new-password" required>
+      </div>
+      <button type="submit" class="btn">▶ VYTVOŘIT ÚČET</button>
+    </form>
+    <div class="auth-link">Máš účet? <a href="/login">Přihlas se</a></div>
+  </div>
+</div>
+</body>
+</html>

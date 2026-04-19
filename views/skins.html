@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skiny – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+.skins-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+.skin-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.skin-card:hover { transform: translateY(-3px); }
+.skin-card.active { border-color: var(--accent); }
+.skin-card.active::after {
+  content: '✓ AKTIVNÍ';
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+.skin-preview {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  border: 3px solid rgba(255,255,255,.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.skin-name {
+  font-size: 13px;
+  letter-spacing: 2px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.skin-desc { font-size: 11px; color: var(--dim); }
+.skin-form { display: inline; }
+</style>
+</head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">MINI3<span>LAUNCHER</span></a>
+  <div class="nav-links">
+    <a href="/menu">Menu</a>
+    <a href="/leaderboard">🏆 Žebříček</a>
+    <a href="/skiny" class="active">🎨 Skiny</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary small">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">🎨 SKINY LAUNCHERU</div>
+  <p class="welcome">Vyber si barevné schéma – platí pro celou aplikaci.</p>
+
+  <div class="skins-grid" id="skinsGrid"></div>
+</main>
+
+<script>
+const skins = {{skinsJson}};
+const current = '{{currentSkin}}';
+
+const grid = document.getElementById('skinsGrid');
+skins.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'skin-card' + (s.id === current ? ' active' : '');
+
+  const emojis = { default:'🟢', neon:'🟣', retro:'🟠', ice:'🔵', blood:'🔴', gold:'🟡' };
+
+  card.innerHTML = `
+    <div class="skin-preview" style="background:${s.color}22; box-shadow: 0 0 20px ${s.color}44">
+      ${emojis[s.id] || '⚪'}
+    </div>
+    <div class="skin-name" style="color:${s.color}">${s.name.toUpperCase()}</div>
+    <div class="skin-desc">${s.desc}</div>
+    ${s.id !== current ? `
+    <form method="POST" action="/skiny" class="skin-form" style="margin-top:12px">
+      <input type="hidden" name="skin" value="${s.id}">
+      <button class="btn small" style="background:${s.color}">Vybrat</button>
+    </form>` : ''}
+  `;
+  grid.appendChild(card);
+});
+</script>
+</body>
+</html>
