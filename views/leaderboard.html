@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Žebříček – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">MINI3<span>LAUNCHER</span></a>
+  <div class="nav-links">
+    <a href="/menu">Menu</a>
+    <a href="/leaderboard" class="active">🏆 Žebříček</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary small">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">🏆 ŽEBŘÍČEK HRÁČŮ</div>
+
+  <div class="lb-tabs">
+    <button class="lb-tab active" onclick="showTab('snake',this)">🐍 Snake</button>
+    <button class="lb-tab" onclick="showTab('dropper',this)">🔵 Dropper</button>
+    <button class="lb-tab" onclick="showTab('minesweeper',this)">💣 Minesweeper</button>
+  </div>
+
+  <div id="lbTable"></div>
+</main>
+
+<script>
+const data = {{dataJson}};
+const me = '{{username}}';
+const rankEmoji = ['🥇','🥈','🥉'];
+const rankClass = ['gold','silver','bronze'];
+
+// Snake & Dropper: vyšší = lepší. Minesweeper: taky vyšší = lepší (počet odhalených políček / čas)
+const configs = {
+  snake:       { col: 'Skóre',  unit: 'bodů' },
+  dropper:     { col: 'Skóre',  unit: 'bodů' },
+  minesweeper: { col: 'Skóre',  unit: 'bodů' },
+};
+
+function showTab(game, btn) {
+  document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const rows = data[game] || [];
+  const cfg  = configs[game];
+  const tbody = rows.length
+    ? rows.map((r, i) => {
+        const isMe = r.username === me;
+        const rc = rankClass[i] || '';
+        const em = rankEmoji[i] || (i + 1);
+        return `<tr class="${isMe ? 'me' : ''}">
+          <td><span class="rank-num ${rc}">${em}</span></td>
+          <td>${isMe ? '▶ ' : ''}${r.username}${isMe ? ' (ty)' : ''}</td>
+          <td><span class="lb-score">${r.best_score}</span> <span class="unit">${cfg.unit}</span></td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="3" style="text-align:center;color:var(--dim)">Zatím žádné záznamy.</td></tr>`;
+
+  document.getElementById('lbTable').innerHTML = `
+    <table class="lb-table">
+      <thead><tr><th>#</th><th>HRÁČ</th><th>${cfg.col}</th></tr></thead>
+      <tbody>${tbody}</tbody>
+    </table>`;
+}
+
+showTab('snake', document.querySelector('.lb-tab'));
+</script>
+</body>
+</html>

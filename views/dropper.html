@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dropper – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/games.css">
+</head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">MINI3<span>LAUNCHER</span></a>
+  <div class="nav-links">
+    <a href="/menu">← Menu</a>
+    <a href="/leaderboard">🏆 Žebříček</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary small">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main class="game-main">
+  <div class="game-header">
+    <span>🔵 DROPPER</span>
+    <div class="score-display">Skóre: <strong id="scoreVal">0</strong></div>
+    <button class="btn small" onclick="startGame()">▶ START</button>
+  </div>
+
+  <div class="pup-panel">
+    <div class="pup-btn" id="pup-shrink" onclick="usePowerUp('shrink')" title="[1] Zmenšení hráče 5s">🔹<span class="pup-count" id="cnt-shrink">0</span></div>
+    <div class="pup-btn" id="pup-freeze" onclick="usePowerUp('freeze')" title="[2] Zmrazení překážek 3s">❄️<span class="pup-count" id="cnt-freeze">0</span></div>
+    <div class="pup-btn" id="pup-magnet" onclick="usePowerUp('magnet')" title="[3] Magnetický štít - 1 kolize">🧲<span class="pup-count" id="cnt-magnet">0</span></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+    <div id="overlay" class="canvas-overlay">
+      <div class="overlay-title">🔵 DROPPER</div>
+      <div class="overlay-sub">Stiskni START nebo MEZERNÍK</div>
+    </div>
+  </div>
+
+  <div id="gameOver" class="game-over hidden">
+    <h2>GAME OVER</h2>
+    <p>Tvé skóre: <strong id="finalScore">0</strong></p>
+    <p id="saveStatus" class="save-status"></p>
+    <div class="go-btns">
+      <button class="btn" onclick="startGame()">▶ HRÁT ZNOVU</button>
+      <a href="/leaderboard" class="btn secondary">🏆 Žebříček</a>
+    </div>
+  </div>
+
+  <div class="controls-hint">⬅➡ / A D = pohyb &nbsp;|&nbsp; 1/2/3 = power-up</div>
+</main>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let player, obstacles, particles, score, speed, raf, running, keys, frame;
+let shrinkActive = false, freezeActive = false, magnetActive = false;
+let powerUps = { shrink: 0, freeze: 0, magnet: 0 };
+
+async function loadPowerUps() {
+  try {
+    const r = await fetch('/api/powerups');
+    const list = await r.json();
+    powerUps = { shrink:0, freeze:0, magnet:0 };
+    list.forEach(p => { if (powerUps[p.type]!==undefined) powerUps[p.type]=p.amount; });
+    updatePupUI();
+  } catch {}
+}
+loadPowerUps();
+
+function updatePupUI() {
+  ['shrink','freeze','magnet'].forEach(t => {
+    document.getElementById('cnt-'+t).textContent = powerUps[t];
+    document.getElementById('pup-'+t).classList.toggle('empty', powerUps[t]<1);
+  });
+}
+
+async function usePowerUp(type) {
+  if (!running || powerUps[type]<1) return;
+  const r = await fetch('/api/powerups/use', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});
+  if (!(await r.json()).ok) return;
+  powerUps[type]--; updatePupUI();
+  if (type==='shrink') {
+    shrinkActive=true; showToast('🔹 ZMENŠENÍ!','#88ddff');
+    setTimeout(()=>{shrinkActive=false;},5000);
+  }
+  if (type==='freeze') {
+    freezeActive=true; showToast('❄️ ZMRAZENO!','#aaddff');
+    setTimeout(()=>{freezeActive=false;},3000);
+  }
+  if (type==='magnet') { magnetActive=true; showToast('🧲 ŠTÍT!','#ffaa44'); }
+}
+
+function showToast(text,color) {
+  const el=document.createElement('div'); el.className='effect-toast';
+  el.style.cssText=`color:${color};border-color:${color}40`; el.textContent=text;
+  document.querySelector('.game-main').appendChild(el);
+  setTimeout(()=>el.remove(),2200);
+}
+
+function startGame() {
+  document.getElementById('gameOver').classList.add('hidden');
+  document.getElementById('overlay').classList.add('hidden');
+  shrinkActive=false; freezeActive=false; magnetActive=false;
+  const pw=32,ph=32;
+  player={x:W/2-pw/2,y:H-pw-20,w:pw,h:ph,speed:6};
+  obstacles=[]; particles=[]; score=0; speed=2.8; running=true; keys={}; frame=0;
+  document.getElementById('scoreVal').textContent=0;
+  cancelAnimationFrame(raf); lastObs=0; tick();
+  loadPowerUps();
+}
+
+let lastObs=0;
+function spawnParticles(x,y,color){
+  for(let i=0;i<8;i++){
+    const angle=Math.random()*Math.PI*2;
+    const spd=1+Math.random()*3;
+    particles.push({x,y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,life:1,color});
+  }
+}
+
+function tick() {
+  if (!running) return; frame++;
+  if (frame%400===0) speed+=0.4;
+
+  const pw = shrinkActive ? 16 : 32;
+  const ph = shrinkActive ? 16 : 32;
+  player.w=pw; player.h=ph;
+
+  if ((keys['ArrowLeft']||keys['a'])&&player.x>0) player.x-=player.speed;
+  if ((keys['ArrowRight']||keys['d'])&&player.x+player.w<W) player.x+=player.speed;
+
+  if (frame-lastObs > 55) {
+    lastObs=frame;
+    const lanes=[0,1,2,3];
+    const skip=Math.floor(Math.random()*4);
+    lanes.filter(l=>l!==skip).forEach(l=>{
+      const lw=W/4;
+      obstacles.push({x:l*lw+4,y:-30,w:lw-8,h:18,color:`hsl(${Math.random()*40+0},90%,55%)`});
+    });
+  }
+
+  if (!freezeActive) obstacles.forEach(o=>o.y+=speed);
+  obstacles=obstacles.filter(o=>o.y<H+40);
+
+  // Подбор монет (золотые блоки)
+  score++;
+  document.getElementById('scoreVal').textContent=Math.floor(score/10);
+
+  for (const o of obstacles) {
+    if (player.x<o.x+o.w&&player.x+player.w>o.x&&player.y<o.y+o.h&&player.y+player.h>o.y) {
+      if (magnetActive) {
+        magnetActive=false;
+        spawnParticles(player.x+player.w/2,player.y+player.h/2,'#ffaa44');
+        showToast('🧲 ŠTÍT POUŽIT!','#ffaa44');
+        obstacles=obstacles.filter(ob=>ob!==o);
+        break;
+      }
+      return endGame();
+    }
+  }
+
+  // Earn power-up každých 100 bodů
+  if (score%1000===0) earnRandomPowerUp();
+
+  // Particles
+  particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=0.04;});
+  particles=particles.filter(p=>p.life>0);
+
+  draw(); raf=requestAnimationFrame(tick);
+}
+
+async function earnRandomPowerUp() {
+  const types=['shrink','freeze','magnet'];
+  const type=types[Math.floor(Math.random()*types.length)];
+  await fetch('/api/powerups/earn',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,amount:1})});
+  powerUps[type]++; updatePupUI(); showToast('⚡ +1 '+type.toUpperCase()+'!','#00ff88');
+}
+
+function draw() {
+  // Gradient pozadí
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#070710'); grad.addColorStop(1,'#0a0a18');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+  // Dráhy
+  for(let i=0;i<=4;i++) {
+    ctx.strokeStyle='#111122'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(i*W/4,0); ctx.lineTo(i*W/4,H); ctx.stroke();
+  }
+
+  // Překážky
+  obstacles.forEach(o=>{
+    ctx.fillStyle=o.color;
+    ctx.shadowColor=o.color; ctx.shadowBlur=10;
+    ctx.fillRect(o.x,o.y,o.w,o.h);
+    ctx.shadowBlur=0;
+    // highlight linie
+    ctx.fillStyle='rgba(255,255,255,0.15)';
+    ctx.fillRect(o.x,o.y,o.w,4);
+  });
+
+  // Hráč
+  const px=player.x,py=player.y,pw=player.w,ph=player.h;
+  const pColor = magnetActive ? '#ffaa44' : shrinkActive ? '#88ddff' : '#4488ff';
+  ctx.shadowColor=pColor; ctx.shadowBlur=20;
+  ctx.fillStyle=pColor;
+  ctx.beginPath(); ctx.arc(px+pw/2,py+ph/2,pw/2,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  // Odraz
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.beginPath(); ctx.ellipse(px+pw/2,py+8,pw/4,pw/8,0,0,Math.PI*2); ctx.fill();
+
+  // Particles
+  particles.forEach(p=>{
+    ctx.globalAlpha=p.life; ctx.fillStyle=p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  // Freeze overlay
+  if (freezeActive) {
+    ctx.fillStyle='rgba(136,200,255,0.05)';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#88ddff'; ctx.font='bold 13px monospace';
+    ctx.textAlign='center'; ctx.fillText('❄️ FREEZE',W/2,20); ctx.textAlign='left';
+  }
+}
+
+async function endGame() {
+  running=false; cancelAnimationFrame(raf);
+  const finalScore=Math.floor(score/10);
+  document.getElementById('finalScore').textContent=finalScore;
+  document.getElementById('gameOver').classList.remove('hidden');
+  const st=document.getElementById('saveStatus'); st.textContent='Ukládám skóre...';
+  try {
+    const r=await fetch('/api/score',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({game:'dropper',score:finalScore})});
+    st.textContent=(await r.json()).ok?'✅ Skóre uloženo!':'⚠️ Chyba.';
+  } catch { st.textContent='⚠️ Chyba sítě.'; }
+}
+
+document.addEventListener('keydown',e=>{keys[e.key]=true; if(e.key===' '&&!running){e.preventDefault();startGame();}
+  if(e.key==='1')usePowerUp('shrink'); if(e.key==='2')usePowerUp('freeze'); if(e.key==='3')usePowerUp('magnet');});
+document.addEventListener('keyup',e=>{keys[e.key]=false;});
+
+ctx.fillStyle='#07070f'; ctx.fillRect(0,0,W,H);
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">MINI3<span>LAUNCHER</span></a>
+  <div class="nav-links">
+    <a href="/leaderboard">🏆 Žebříček</a>
+    <a href="/skiny">🎨 Skiny</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary small">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">▤ HERNÍ CENTRUM</div>
+  <p class="welcome">Vítej, <strong>{{username}}</strong>! Vyber hru a jdi hrát.</p>
+
+  <div class="menu-grid">
+    <a href="/snake" class="menu-item game-card">
+      <span class="icon">🐍</span>
+      <h3>SNAKE</h3>
+      <p>Klasická had hra – sbírej body</p>
+      <span class="play-btn">▶ HRÁT</span>
+    </a>
+    <a href="/dropper" class="menu-item game-card">
+      <span class="icon">🔵</span>
+      <h3>DROPPER</h3>
+      <p>Padej dolů a vyhýbej se překážkám</p>
+      <span class="play-btn">▶ HRÁT</span>
+    </a>
+    <a href="/minesweeper" class="menu-item game-card">
+      <span class="icon">💣</span>
+      <h3>MINESWEEPER</h3>
+      <p>Najdi všechny miny bez výbuchu</p>
+      <span class="play-btn">▶ HRÁT</span>
+    </a>
+    <a href="/leaderboard" class="menu-item">
+      <span class="icon">🏆</span>
+      <h3>ŽEBŘÍČEK</h3>
+      <p>Nejlepší hráči všech her</p>
+    </a>
+  </div>
+</main>
+</body>
+</html>
