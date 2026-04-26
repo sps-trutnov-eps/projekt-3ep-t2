@@ -8,48 +8,153 @@
 <style>
 .skins-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
   margin-top: 8px;
 }
+
 .skin-card {
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  padding: 20px 16px;
-  text-align: center;
+  border-radius: 14px;
+  padding: 0;
   cursor: pointer;
-  transition: all .2s;
+  transition: transform .2s, box-shadow .2s;
   position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
 }
-.skin-card:hover { transform: translateY(-3px); }
-.skin-card.active { border-color: var(--accent); }
-.skin-card.active::after {
-  content: '✓ AKTIVNÍ';
+.skin-card:hover { transform: translateY(-4px); }
+.skin-card.active { border-color: var(--sk-accent) !important; }
+
+/* Badge aktivní */
+.skin-active-badge {
   position: absolute;
-  top: 8px; right: 8px;
+  top: 12px; right: 12px;
   font-size: 9px;
-  letter-spacing: 1px;
-  color: var(--accent);
+  letter-spacing: 2px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
-.skin-preview {
-  width: 60px; height: 60px;
-  border-radius: 50%;
-  margin: 0 auto 12px;
-  border: 3px solid rgba(255,255,255,.1);
+
+/* Horní preview panel */
+.skin-preview-band {
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.skin-preview-band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255,255,255,.03) 10px,
+    rgba(255,255,255,.03) 20px
+  );
+}
+
+/* Ukázka UI prvků */
+.preview-el {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  z-index: 1;
+}
+.prev-btn {
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+}
+.prev-bar {
+  width: 70px; height: 5px;
+  border-radius: 3px;
+  opacity: .7;
+}
+.prev-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.prev-text {
+  font-size: 9px;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+
+/* Dolní info */
+.skin-info {
+  padding: 16px 18px 18px;
+}
+.skin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
 }
 .skin-name {
-  font-size: 13px;
-  letter-spacing: 2px;
+  font-size: 14px;
+  letter-spacing: 3px;
   font-weight: bold;
-  margin-bottom: 4px;
+  text-transform: uppercase;
 }
-.skin-desc { font-size: 11px; color: var(--dim); }
-.skin-form { display: inline; }
+.skin-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.skin-tag {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: .8;
+}
+.skin-desc {
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.skin-palette {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+.palette-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.15);
+}
+
+form.skin-form { margin: 0; }
+.select-btn {
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-radius: 7px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
+  text-transform: uppercase;
+}
+.select-btn:hover { opacity: .85; transform: translateY(-1px); }
 </style>
 </head>
 <body class="skin-{{skin}}">
@@ -59,6 +164,7 @@
     <a href="/menu">Menu</a>
     <a href="/leaderboard">🏆 Žebříček</a>
     <a href="/skiny" class="active">🎨 Skiny</a>
+    <a href="/napoveda">❓ Nápověda</a>
     <span class="nav-user">👤 {{username}}</span>
     <form method="POST" action="/logout" style="margin:0">
       <button class="btn secondary small">ODHLÁSIT</button>
@@ -68,33 +174,122 @@
 
 <main>
   <div class="page-title">🎨 SKINY LAUNCHERU</div>
-  <p class="welcome">Vyber si barevné schéma – platí pro celou aplikaci.</p>
-
+  <p class="page-sub">Vyber si vizuální téma – změní barvy, záři a atmosféru celé aplikace.</p>
   <div class="skins-grid" id="skinsGrid"></div>
 </main>
 
 <script>
-const skins = {{skinsJson}};
 const current = '{{currentSkin}}';
 
-const grid = document.getElementById('skinsGrid');
-skins.forEach(s => {
-  const card = document.createElement('div');
-  card.className = 'skin-card' + (s.id === current ? ' active' : '');
+const skins = [
+  {
+    id: 'default',
+    name: 'Matrix',
+    accent: '#00ff88', accent2: '#4488ff', bg: '#0a0a0f', surface: '#13131a', text: '#e0e0e0',
+    desc: 'Klasické zelené terminálové záření. Inspirováno hackerskými filmy a digitálními maticemi.',
+    tags: ['klasický', 'terminál', 'zelená'],
+    palette: ['#00ff88','#4488ff','#0a0a0f','#13131a','#ff4466'],
+    emoji: '💻',
+  },
+  {
+    id: 'neon',
+    name: 'Cyberpunk',
+    accent: '#cc00ff', accent2: '#00ffee', bg: '#08000f', surface: '#110018', text: '#f0d0ff',
+    desc: 'Dystopická budoucnost. Fialové neony a azurové záblesky v temných ulicích megaměsta.',
+    tags: ['neon', 'cyberpunk', 'fialová'],
+    palette: ['#cc00ff','#00ffee','#08000f','#110018','#ff0066'],
+    emoji: '🌆',
+  },
+  {
+    id: 'retro',
+    name: 'Arcade',
+    accent: '#ff9900', accent2: '#ff5500', bg: '#0d0800', surface: '#1a1000', text: '#ffe0aa',
+    desc: 'Vzpomínka na zlatou éru arkádových heren. CRT obrazovky, mince a pixelová nostalgie.',
+    tags: ['retro', 'arcade', 'oranžová'],
+    palette: ['#ff9900','#ff5500','#0d0800','#1a1000','#ff3300'],
+    emoji: '🕹️',
+  },
+  {
+    id: 'ice',
+    name: 'Frost',
+    accent: '#66ddff', accent2: '#3388ff', bg: '#04080f', surface: '#091222', text: '#cce8ff',
+    desc: 'Arktická čistota. Ledové modré tóny a křišťálová průzračnost jako mrazivý vzduch.',
+    tags: ['led', 'chladný', 'modrá'],
+    palette: ['#66ddff','#3388ff','#04080f','#091222','#ff4488'],
+    emoji: '❄️',
+  },
+  {
+    id: 'blood',
+    name: 'Crimson',
+    accent: '#ff2222', accent2: '#ff6600', bg: '#0d0000', surface: '#1c0000', text: '#ffcccc',
+    desc: 'Temná krvavá noční můra. Rudé záření v absolutní tmě pro opravdové hardcore hráče.',
+    tags: ['temný', 'horror', 'červená'],
+    palette: ['#ff2222','#ff6600','#0d0000','#1c0000','#ff0044'],
+    emoji: '🩸',
+  },
+  {
+    id: 'gold',
+    name: 'Champion',
+    accent: '#ffd700', accent2: '#ffaa00', bg: '#0a0800', surface: '#1a1500', text: '#fff0aa',
+    desc: 'Zlatá trofej vítězů. Luxusní zlaté tóny pro hráče na vrcholu žebříčku.',
+    tags: ['premium', 'zlatá', 'šampion'],
+    palette: ['#ffd700','#ffaa00','#0a0800','#1a1500','#ff4422'],
+    emoji: '🏆',
+  },
+];
 
-  const emojis = { default:'🟢', neon:'🟣', retro:'🟠', ice:'🔵', blood:'🔴', gold:'🟡' };
+const grid = document.getElementById('skinsGrid');
+
+skins.forEach(s => {
+  const isActive = s.id === current;
+  const card = document.createElement('div');
+  card.className = 'skin-card' + (isActive ? ' active' : '');
+  card.style.cssText = `background:${s.surface}; border-color:${isActive ? s.accent : s.surface}; box-shadow: ${isActive ? `0 0 24px ${s.accent}33` : '0 4px 20px rgba(0,0,0,.4)'};`;
+
+  const tagsHtml = s.tags.map(t =>
+    `<span class="skin-tag" style="background:${s.accent}18;color:${s.accent};border:1px solid ${s.accent}33">${t}</span>`
+  ).join('');
+
+  const paletteHtml = s.palette.map(c =>
+    `<div class="palette-dot" style="background:${c}"></div>`
+  ).join('');
 
   card.innerHTML = `
-    <div class="skin-preview" style="background:${s.color}22; box-shadow: 0 0 20px ${s.color}44">
-      ${emojis[s.id] || '⚪'}
+    ${isActive ? `<div class="skin-active-badge" style="background:${s.accent};color:#000">✓ AKTIVNÍ</div>` : ''}
+
+    <div class="skin-preview-band" style="background:linear-gradient(135deg,${s.bg},${s.surface})">
+      <div class="preview-el">
+        <div class="prev-dot" style="background:${s.accent}22;border:2px solid ${s.accent};box-shadow:0 0 10px ${s.accent}44">
+          ${s.emoji}
+        </div>
+      </div>
+      <div class="preview-el">
+        <div class="prev-btn" style="background:${s.accent};color:#000">▶ HRÁT</div>
+        <div class="prev-bar" style="background:linear-gradient(90deg,${s.accent},${s.accent2})"></div>
+        <div class="prev-bar" style="background:${s.accent}44;width:50px"></div>
+      </div>
+      <div class="preview-el">
+        <div class="prev-text" style="color:${s.accent};text-shadow:0 0 8px ${s.accent}">MINI3</div>
+        <div class="prev-text" style="color:${s.accent2};font-size:8px">LAUNCHER</div>
+        <div style="width:40px;height:1px;background:linear-gradient(90deg,${s.accent},transparent);margin-top:3px"></div>
+      </div>
     </div>
-    <div class="skin-name" style="color:${s.color}">${s.name.toUpperCase()}</div>
-    <div class="skin-desc">${s.desc}</div>
-    ${s.id !== current ? `
-    <form method="POST" action="/skiny" class="skin-form" style="margin-top:12px">
-      <input type="hidden" name="skin" value="${s.id}">
-      <button class="btn small" style="background:${s.color}">Vybrat</button>
-    </form>` : ''}
+
+    <div class="skin-info" style="background:${s.surface}">
+      <div class="skin-top">
+        <div class="skin-name" style="color:${s.accent};text-shadow:0 0 10px ${s.accent}44">${s.name}</div>
+      </div>
+      <div class="skin-tags">${tagsHtml}</div>
+      <div class="skin-desc" style="color:${s.text}99">${s.desc}</div>
+      <div class="skin-palette">${paletteHtml}</div>
+      ${isActive
+        ? `<div style="text-align:center;font-size:11px;letter-spacing:2px;color:${s.accent};padding:8px 0">✓ PRÁVĚ POUŽÍVÁŠ TENTO SKIN</div>`
+        : `<form method="POST" action="/skiny" class="skin-form">
+             <input type="hidden" name="skin" value="${s.id}">
+             <button class="select-btn" style="background:${s.accent};color:#000">VYBRAT SKIN</button>
+           </form>`
+      }
+    </div>
   `;
   grid.appendChild(card);
 });
