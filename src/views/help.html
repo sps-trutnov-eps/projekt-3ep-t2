@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nápověda – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+/* ── Sekce ────────────────────────────────────────────────── */
+.help-section {
+  margin-bottom: 40px;
+}
+.help-section h2 {
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Power-up tabulka ─────────────────────────────────────── */
+.pup-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.pup-table th {
+  padding: 12px 18px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--dim2);
+  border-bottom: 2px solid var(--border);
+  text-transform: uppercase;
+  background: var(--surface2);
+}
+.pup-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.pup-table tr:last-child td { border-bottom: none; }
+.pup-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* Herní sekce barevně odlišené */
+.game-header-row td {
+  background: var(--accent-dim) !important;
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: bold;
+  padding: 8px 18px;
+  text-transform: uppercase;
+}
+
+.pup-icon {
+  font-size: 20px;
+  display: block;
+  text-align: center;
+}
+.pup-name {
+  font-weight: bold;
+  color: var(--text);
+  letter-spacing: 1px;
+  margin-bottom: 3px;
+}
+.pup-key {
+  display: inline-block;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: 11px;
+  color: var(--accent2);
+  font-family: inherit;
+  letter-spacing: 1px;
+}
+.pup-earn {
+  font-size: 11px;
+  color: var(--dim2);
+  margin-top: 4px;
+}
+.pup-earn strong { color: var(--accent); }
+
+/* ── Ovládání tabulka ─────────────────────────────────────── */
+.controls-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.controls-table td {
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.controls-table tr:last-child td { border-bottom: none; }
+.controls-table td:first-child { color: var(--dim2); width: 40%; }
+.key-combo {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.key {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-bottom: 3px solid var(--border2);
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 12px;
+  color: var(--text);
+  font-family: inherit;
+}
+
+/* ── Score tabulka ────────────────────────────────────────── */
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.score-table th {
+  padding: 11px 18px;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--dim2);
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  background: var(--surface2);
+}
+.score-table td {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.score-table tr:last-child td { border-bottom: none; }
+.game-icon { font-size: 22px; }
+.score-formula {
+  font-family: inherit;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--accent2);
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* ── Tip boxy ─────────────────────────────────────────────── */
+.tip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.tip-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px;
+}
+.tip-box h4 {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.tip-box p {
+  font-size: 12px;
+  color: var(--dim2);
+  line-height: 1.6;
+}
+.tip-box p strong { color: var(--text); }
+</style>
+</head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">MINI3<span>LAUNCHER</span></a>
+  <div class="nav-links">
+    <a href="/menu">Menu</a>
+    <a href="/leaderboard">🏆 Žebříček</a>
+    <a href="/skiny">🎨 Skiny</a>
+    <a href="/napoveda" class="active">❓ Nápověda</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary small">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">❓ NÁPOVĚDA</div>
+  <p class="page-sub">Vše co potřebuješ vědět o hrách, power-upech a ovládání.</p>
+
+  <!-- ── POWER-UPY ─────────────────────────────────────────── -->
+  <div class="help-section">
+    <h2>⚡ Power-upy</h2>
+    <table class="pup-table">
+      <thead>
+        <tr>
+          <th style="width:50px">Ikona</th>
+          <th style="width:140px">Název</th>
+          <th>Efekt</th>
+          <th style="width:100px">Klávesa</th>
+          <th>Jak získat</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- SNAKE -->
+        <tr class="game-header-row">
+          <td colspan="5">🐍 Snake</td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">🐢</span></td>
+          <td><div class="pup-name">Zpomalení</div></td>
+          <td>Had se pohybuje 2,5× pomaleji po dobu <strong>5 sekund</strong>. Ideální když jsi obklíčen a potřebuješ čas na únik.</td>
+          <td><span class="pup-key">1</span></td>
+          <td><div class="pup-earn">Každých <strong>5 bodů</strong> je 40% šance na získání náhodného power-upu.</div></td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">✖2</span></td>
+          <td><div class="pup-name">Dvojité skóre</div></td>
+          <td>Každé jídlo dává <strong>2 body</strong> místo 1 po dobu 5 sekund. Kombinuj s rychlým pohybem pro maximální skóre.</td>
+          <td><span class="pup-key">2</span></td>
+          <td><div class="pup-earn">Náhodně každých 5 bodů.</div></td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">🛡</span></td>
+          <td><div class="pup-name">Štít</div></td>
+          <td>Odpustí <strong>jednu kolizi</strong> – ať se stěnou nebo se sebou samým. Had změní barvu když je aktivní.</td>
+          <td><span class="pup-key">3</span></td>
+          <td><div class="pup-earn">Náhodně každých 5 bodů.</div></td>
+        </tr>
+
+        <!-- DROPPER -->
+        <tr class="game-header-row">
+          <td colspan="5">🔵 Dropper</td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">🔹</span></td>
+          <td><div class="pup-name">Zmenšení</div></td>
+          <td>Hráčský kruh se zmenší na <strong>polovinu</strong> po dobu 5 sekund – projdeš mezerami kde by ses jinak nevešel.</td>
+          <td><span class="pup-key">1</span></td>
+          <td><div class="pup-earn">Každých <strong>100 bodů</strong> náhodný power-up.</div></td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">❄️</span></td>
+          <td><div class="pup-name">Freeze</div></td>
+          <td>Všechny překážky se <strong>zastaví</strong> na 3 sekundy. Modrý overlay signalizuje aktivní efekt – přesuň se do bezpečné pozice.</td>
+          <td><span class="pup-key">2</span></td>
+          <td><div class="pup-earn">Náhodně každých 100 bodů.</div></td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">🧲</span></td>
+          <td><div class="pup-name">Magnetický štít</div></td>
+          <td>Při kolizi s překážkou ji <strong>zničí</strong> místo game over. Particle efekt potvrdí zásah. Funguje jednou.</td>
+          <td><span class="pup-key">3</span></td>
+          <td><div class="pup-earn">Náhodně každých 100 bodů.</div></td>
+        </tr>
+
+        <!-- MINESWEEPER -->
+        <tr class="game-header-row">
+          <td colspan="5">💣 Minesweeper</td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">🔍</span></td>
+          <td><div class="pup-name">Odhal pole</div></td>
+          <td>Automaticky odkryje jedno <strong>náhodné bezpečné</strong> pole. Funguje jen po prvním kliknutí (board musí být vygenerován).</td>
+          <td><span class="pup-key">1</span></td>
+          <td><div class="pup-earn">Za každou <strong>výhru</strong> dostaneš náhodný power-up.</div></td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">💊</span></td>
+          <td><div class="pup-name">Defuse</div></td>
+          <td>Odstraní jednu <strong>náhodnou minu</strong> z hrací plochy a přepočítá čísla sousedních políček. Efektivně zjednodušuje hru.</td>
+          <td><span class="pup-key">2</span></td>
+          <td><div class="pup-earn">Za každou výhru.</div></td>
+        </tr>
+        <tr>
+          <td><span class="pup-icon">📡</span></td>
+          <td><div class="pup-name">Scanner</div></td>
+          <td>Zvýrazní oblast <strong>3×3 políček</strong> kolem náhodné miny po dobu 4 sekund – červený glow odhalí nebezpečnou zónu.</td>
+          <td><span class="pup-key">3</span></td>
+          <td><div class="pup-earn">Za každou výhru.</div></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── SKÓRE ──────────────────────────────────────────────── -->
+  <div class="help-section">
+    <h2>🏆 Jak funguje skóre</h2>
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Hra</th>
+          <th>Popis výpočtu</th>
+          <th>Maximum</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="game-icon">🐍</span> Snake</td>
+          <td>
+            +1 bod za každé jídlo. S power-upem Dvojité skóre +2.<br>
+            <span class="score-formula">skóre = počet_jídel × (1 nebo 2)</span>
+          </td>
+          <td>Neomezené</td>
+        </tr>
+        <tr>
+          <td><span class="game-icon">🔵</span> Dropper</td>
+          <td>
+            1 bod za každý frame přežití. Obtížnost roste každých 400 framů.<br>
+            <span class="score-formula">skóre = frame_count ÷ 10</span>
+          </td>
+          <td>Neomezené</td>
+        </tr>
+        <tr>
+          <td><span class="game-icon">💣</span> Minesweeper</td>
+          <td>
+            Skóre = 1000 děleno časem v sekundách. Rychlá výhra = vyšší skóre. Prohra = 0.<br>
+            <span class="score-formula">skóre = ⌊1000 ÷ čas_v_sekundách⌋</span>
+          </td>
+          <td>~1000 (1s výhra)</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--dim2);margin-top:10px">
+      ℹ️ Do žebříčku se ukládá vždy jen <strong>nejlepší skóre</strong> každého hráče pro každou hru.
+    </p>
+  </div>
+
+  <!-- ── OVLÁDÁNÍ ───────────────────────────────────────────── -->
+  <div class="help-section">
+    <h2>🎮 Ovládání</h2>
+    <table class="controls-table">
+      <tr>
+        <td>Pohyb (Snake)</td>
+        <td><div class="key-combo"><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span> nebo <span class="key">↑</span><span class="key">←</span><span class="key">↓</span><span class="key">→</span></div></td>
+      </tr>
+      <tr>
+        <td>Pohyb (Dropper)</td>
+        <td><div class="key-combo"><span class="key">A</span><span class="key">D</span> nebo <span class="key">←</span><span class="key">→</span></div></td>
+      </tr>
+      <tr>
+        <td>Start / Restart</td>
+        <td><div class="key-combo"><span class="key">MEZERNÍK</span></div></td>
+      </tr>
+      <tr>
+        <td>Power-up 1</td>
+        <td><div class="key-combo"><span class="key">1</span> nebo kliknutí na tlačítko</div></td>
+      </tr>
+      <tr>
+        <td>Power-up 2</td>
+        <td><div class="key-combo"><span class="key">2</span> nebo kliknutí na tlačítko</div></td>
+      </tr>
+      <tr>
+        <td>Power-up 3</td>
+        <td><div class="key-combo"><span class="key">3</span> nebo kliknutí na tlačítko</div></td>
+      </tr>
+      <tr>
+        <td>Minesweeper – odkrýt</td>
+        <td><div class="key-combo">Levé kliknutí</div></td>
+      </tr>
+      <tr>
+        <td>Minesweeper – vlajka</td>
+        <td><div class="key-combo">Pravé kliknutí</div></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ── TIPY ──────────────────────────────────────────────── -->
+  <div class="help-section">
+    <h2>💡 Tipy pro vyšší skóre</h2>
+    <div class="tip-grid">
+      <div class="tip-box">
+        <h4>🐍 Snake – combo strategie</h4>
+        <p>Aktivuj <strong>Zpomalení</strong> a hned poté <strong>Dvojité skóre</strong>. Během pomalého pohybu nasbíráš body 2× rychleji a máš čas na bezpečný pohyb.</p>
+      </div>
+      <div class="tip-box">
+        <h4>🔵 Dropper – freeze timing</h4>
+        <p>Freeze nepoužívej hned – šetři ho na momenty kdy jsou <strong>3+ překážky najednou</strong>. Přesuň se do volného pruhu a pak nech freeze vypršet.</p>
+      </div>
+      <div class="tip-box">
+        <h4>💣 Minesweeper – rychlá výhra</h4>
+        <p>Nejprve odhal rohová pole – mají méně sousedů. Použij <strong>Defuse</strong> až když máš 2-3 miny zbývající, ne na začátku.</p>
+      </div>
+      <div class="tip-box">
+        <h4>⚡ Power-upy mezi hrami</h4>
+        <p>Power-upy jsou <strong>sdílené mezi hrami</strong>! Výhrou v Minweeperu získáš power-upy které můžeš použít v Snakovi nebo Dropperu.</p>
+      </div>
+      <div class="tip-box">
+        <h4>🏆 Žebříček strategie</h4>
+        <p>Ukládá se vždy jen <strong>nejlepší výsledek</strong>. Nehraj opatrně – riskuj a jdi na maximum skóre, horší výsledky se nepromítnou.</p>
+      </div>
+      <div class="tip-box">
+        <h4>📡 Scanner tip</h4>
+        <p>Když Scanner zvýrazní oblast, <strong>dej vlajku</strong> na každé neodkryté pole v té zóně. Pak systematicky odhal zbytek – ušetříš si hádání.</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

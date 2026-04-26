@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake – Mini3 Launcher</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/games.css">
+</head>
+<body class="skin-{{skin}}">
+<nav>
+  <a class="nav-brand" href="/menu">MINI3<span>LAUNCHER</span></a>
+  <div class="nav-links">
+    <a href="/menu">← Menu</a>
+    <a href="/leaderboard">🏆 Žebříček</a>
+    <span class="nav-user">👤 {{username}}</span>
+    <form method="POST" action="/logout" style="margin:0">
+      <button class="btn secondary small">ODHLÁSIT</button>
+    </form>
+  </div>
+</nav>
+
+<main class="game-main">
+  <div class="game-header">
+    <span>🐍 SNAKE</span>
+    <div class="score-display">Skóre: <strong id="scoreVal">0</strong> <span id="doubleActive" class="pup-badge hidden">✖2</span></div>
+    <button class="btn small" onclick="startGame()">▶ START</button>
+  </div>
+
+  <div class="pup-panel">
+    <div class="pup-btn" id="pup-slow"   onclick="usePowerUp('slow')"   title="[1] Zpomalení 5s">🐢<span class="pup-count" id="cnt-slow">0</span></div>
+    <div class="pup-btn" id="pup-double" onclick="usePowerUp('double')" title="[2] Dvojité skóre 5s">✖2<span class="pup-count" id="cnt-double">0</span></div>
+    <div class="pup-btn" id="pup-shield" onclick="usePowerUp('shield')" title="[3] Štít - 1 kolize">🛡<span class="pup-count" id="cnt-shield">0</span></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="overlay" class="canvas-overlay">
+      <div class="overlay-title">🐍 SNAKE</div>
+      <div class="overlay-sub">Stiskni START nebo MEZERNÍK</div>
+    </div>
+  </div>
+
+  <div id="gameOver" class="game-over hidden">
+    <h2>GAME OVER</h2>
+    <p>Tvé skóre: <strong id="finalScore">0</strong></p>
+    <p id="saveStatus" class="save-status"></p>
+    <div class="go-btns">
+      <button class="btn" onclick="startGame()">▶ HRÁT ZNOVU</button>
+      <a href="/leaderboard" class="btn secondary">🏆 Žebříček</a>
+    </div>
+  </div>
+
+  <div class="controls-hint">⬆⬇⬅➡ / WASD = pohyb &nbsp;|&nbsp; 1/2/3 = power-up</div>
+</main>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const COLS = 20, ROWS = 20, CELL = canvas.width / COLS;
+const BASE_SPEED = 130;
+
+let snake, dir, nextDir, food, score, loop, running;
+let slowActive = false, doubleActive = false, shieldActive = false;
+let powerUps = { slow: 0, double: 0, shield: 0 };
+
+async function loadPowerUps() {
+  try {
+    const r = await fetch('/api/powerups');
+    const list = await r.json();
+    powerUps = { slow: 0, double: 0, shield: 0 };
+    list.forEach(p => { if (powerUps[p.type] !== undefined) powerUps[p.type] = p.amount; });
+    updatePupUI();
+  } catch {}
+}
+loadPowerUps();
+
+function updatePupUI() {
+  ['slow','double','shield'].forEach(t => {
+    document.getElementById('cnt-' + t).textContent = powerUps[t];
+    document.getElementById('pup-' + t).classList.toggle('empty', powerUps[t] < 1);
+  });
+}
+
+async function usePowerUp(type) {
+  if (!running || powerUps[type] < 1) return;
+  const r = await fetch('/api/powerups/use', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type}) });
+  const d = await r.json();
+  if (!d.ok) return;
+  powerUps[type]--; updatePupUI();
+  if (type === 'slow') {
+    slowActive = true; clearInterval(loop); loop = setInterval(tick, BASE_SPEED * 2.5);
+    showToast('🐢 ZPOMALENÍ!', '#88ddff');
+    setTimeout(() => { slowActive = false; if (running) { clearInterval(loop); loop = setInterval(tick, BASE_SPEED); } }, 5000);
+  }
+  if (type === 'double') {
+    doubleActive = true; document.getElementById('doubleActive').classList.remove('hidden');
+    showToast('✖2 DVOJITÉ SKÓRE!', '#ffd700');
+    setTimeout(() => { doubleActive = false; document.getElementById('doubleActive').classList.add('hidden'); }, 5000);
+  }
+  if (type === 'shield') { shieldActive = true; showToast('🛡 ŠTÍT AKTIVNÍ!', '#ff88aa'); }
+}
+
+function showToast(text, color) {
+  const el = document.createElement('div');
+  el.className = 'effect-toast';
+  el.style.cssText = `color:${color};border-color:${color}40`;
+  el.textContent = text;
+  document.querySelector('.game-main').appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+function startGame() {
+  document.getElementById('gameOver').classList.add('hidden');
+  document.getElementById('overlay').classList.add('hidden');
+  slowActive = false; doubleActive = false; shieldActive = false;
+  document.getElementById('doubleActive').classList.add('hidden');
+  snake = [{x:10,y:10}]; dir = {x:1,y:0}; nextDir = {x:1,y:0};
+  food = randomFood(); score = 0; running = true;
+  document.getElementById('scoreVal').textContent = 0;
+  clearInterval(loop); loop = setInterval(tick, BASE_SPEED);
+  loadPowerUps();
+}
+
+function randomFood() {
+  let f;
+  do { f = {x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS)}; }
+  while (snake.some(s => s.x===f.x && s.y===f.y));
+  return f;
+}
+
+function tick() {
+  dir = nextDir;
+  const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+  if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS || snake.some(s=>s.x===head.x&&s.y===head.y)) {
+    if (shieldActive) {
+      shieldActive = false;
+      // Respawn uprostřed – zachovej délku hada
+      const len = snake.length;
+      snake = [];
+      for (let i = 0; i < len; i++) snake.push({ x: 10 - i, y: 10 });
+      dir = { x: 1, y: 0 }; nextDir = { x: 1, y: 0 };
+      showToast('🛡 ŠTÍT! RESPAWN UPROSTŘED!', '#ff88aa');
+      return;
+    }
+    return endGame();
+  }
+  snake.unshift(head);
+  if (head.x===food.x && head.y===food.y) {
+    score += doubleActive ? 2 : 1;
+    document.getElementById('scoreVal').textContent = score;
+    food = randomFood();
+    if (score % 5 === 0) earnRandomPowerUp();
+  } else { snake.pop(); }
+  draw();
+}
+
+async function earnRandomPowerUp() {
+  if (Math.random() > 0.4) return;
+  const types = ['slow','double','shield'];
+  const type = types[Math.floor(Math.random()*types.length)];
+  await fetch('/api/powerups/earn', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type, amount:1}) });
+  powerUps[type]++; updatePupUI();
+  showToast('⚡ +1 ' + type.toUpperCase() + '!', '#00ff88');
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function draw() {
+  ctx.fillStyle = '#07070f'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#0d0d1a'; ctx.lineWidth = 0.5;
+  for (let i=0;i<=COLS;i++) { ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,canvas.height); ctx.stroke(); }
+  for (let i=0;i<=ROWS;i++) { ctx.beginPath(); ctx.moveTo(0,i*CELL); ctx.lineTo(canvas.width,i*CELL); ctx.stroke(); }
+
+  const pulse = 0.85 + 0.15*Math.sin(Date.now()/200);
+  ctx.shadowColor='#ff4466'; ctx.shadowBlur=15*pulse; ctx.fillStyle='#ff4466';
+  ctx.beginPath(); ctx.arc(food.x*CELL+CELL/2, food.y*CELL+CELL/2, (CELL/2-4)*pulse, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+
+  snake.forEach((s,i) => {
+    if (i===0) {
+      ctx.fillStyle = shieldActive ? '#ff88aa' : doubleActive ? '#ffd700' : '#00ff88';
+      ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 14;
+    } else {
+      const g = Math.floor(180 - (i/snake.length)*120);
+      ctx.fillStyle = `rgb(0,${g},${Math.floor(g*0.4)})`; ctx.shadowBlur=0;
+    }
+    const pad = i===0?1:2, r = i===0?4:3;
+    roundRect(ctx, s.x*CELL+pad, s.y*CELL+pad, CELL-pad*2, CELL-pad*2, r); ctx.fill();
+  });
+  ctx.shadowBlur=0;
+}
+
+async function endGame() {
+  clearInterval(loop); running = false;
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('gameOver').classList.remove('hidden');
+  const st = document.getElementById('saveStatus');
+  st.textContent = 'Ukládám skóre...';
+  try {
+    const r = await fetch('/api/score', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({game:'snake', score}) });
+    st.textContent = (await r.json()).ok ? '✅ Skóre uloženo!' : '⚠️ Chyba.';
+  } catch { st.textContent = '⚠️ Chyba sítě.'; }
+}
+
+document.addEventListener('keydown', e => {
+  const map = { ArrowUp:{x:0,y:-1}, w:{x:0,y:-1}, ArrowDown:{x:0,y:1}, s:{x:0,y:1},
+                ArrowLeft:{x:-1,y:0}, a:{x:-1,y:0}, ArrowRight:{x:1,y:0}, d:{x:1,y:0} };
+  const nd = map[e.key];
+  if (nd && !(nd.x===-dir.x && nd.y===-dir.y)) { nextDir=nd; e.preventDefault(); }
+  if (e.key===' ') { e.preventDefault(); if (!running) startGame(); }
+  if (e.key==='1') usePowerUp('slow');
+  if (e.key==='2') usePowerUp('double');
+  if (e.key==='3') usePowerUp('shield');
+});
+
+ctx.fillStyle='#07070f'; ctx.fillRect(0,0,canvas.width,canvas.height);
+</script>
+</body>
+</html>
