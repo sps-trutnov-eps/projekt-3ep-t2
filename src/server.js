@@ -22,7 +22,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'arcade-secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 4 }
+  cookie: { maxAge: 1000 * 60 * 60 * 4, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' }
 }));
 
 app.set('view engine', 'html');
